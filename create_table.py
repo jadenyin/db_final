@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy import Column, Integer, TEXT
 from sqlalchemy.ext.declarative import declarative_base
 
-engine = create_engine('postgresql+psycopg2://postgres:Star0608!.@localhost/postgres', encoding='utf-8', echo=True)
+engine = create_engine('postgresql+psycopg2://postgres:postgres@localhost/postgres', encoding='utf-8', echo=True)
 base = declarative_base()
 
 
@@ -65,4 +65,4 @@ class Book(base):
     tag3 = Column('tag3', TEXT)
 
 
-# base.metadata.create_all(engine)  # 创建表结构
+base.metadata.create_all(engine)  # 创建表结构
