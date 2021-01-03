@@ -1,5 +1,6 @@
 import sqlite3 as sqlite
 import uuid
+import psycopg2
 import json
 import logging
 import judge
@@ -49,7 +50,7 @@ def new_order(user_id,store_id,bookid_and_count):
                 (uid, user_id, store_id))
         conn.commit()
         order_id = uid
-    except sqlite.Error as e:
+    except psycopg2.Error as e:
         logging.info("528, {}".format(str(e)))
         return 528, "{}".format(str(e)), ""
     except BaseException as e:
@@ -73,9 +74,9 @@ def add_money(user_id,password,add_value):
             "UPDATE \"user\" SET balance = balance + %s WHERE user_id = %s",
             (add_value, user_id))
         if cursor.rowcount == 0:
-            return error.error_non_exist_user_id(user_id)
+            return 511, "non exist user id "+user_id
         conn.commit()
-    except sqlite.Error as e:
+    except psycopg2.Error as e:
         return 528, "{}".format(str(e))
     except BaseException as e:
         return 530, "{}".format(str(e))
@@ -113,7 +114,7 @@ def payment(user_id,password,order_id):
         cursor.execute("SELECT store_id, user_id FROM user_store WHERE store_id = %s;", (store_id,))
         row = cursor.fetchone()
         if row is None:
-            return error.error_non_exist_store_id(store_id)
+            return 513, "non exist store id "+store_id
         seller_id = row[1]
 
         #determine whether seller's id is exist
@@ -127,7 +128,7 @@ def payment(user_id,password,order_id):
             count = row[1]
             price = row[2]
             total_price = total_price + price * count
-            
+
         #try to update buyer's information. failure means balance is not enough
         cursor.execute("UPDATE \"user\" set balance = balance - %s"
                               "WHERE user_id = %s AND balance >= %s",
@@ -144,7 +145,7 @@ def payment(user_id,password,order_id):
         cursor.execute("DELETE FROM new_order_detail where order_id = %s", (order_id,))
         conn.commit()
 
-    except sqlite.Error as e:
+    except psycopg2.Error as e:
         return 528, "{}".format(str(e))
 
     except BaseException as e:
