@@ -1,7 +1,7 @@
 from flask import Blueprint
 from flask import request
 from flask import jsonify
-import buyer_function as Buyer
+from model import buyer as Buyer
 
 bp_buyer = Blueprint("buyer", __name__, url_prefix="/buyer")
 
