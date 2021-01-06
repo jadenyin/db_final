@@ -34,6 +34,7 @@ class New_order(base):
     order_id = Column('order_id', TEXT, primary_key=True)
     user_id = Column('user_id', TEXT)
     store_id = Column('store_id', TEXT)
+    state = Column('state', Integer)
 
 
 class New_order_detail(base):
@@ -42,7 +43,6 @@ class New_order_detail(base):
     book_id = Column('book_id', TEXT, primary_key=True)
     count = Column('count', Integer)
     price = Column('price', Integer)
-
 
 class Book(base):
     __tablename__ = 'book'
