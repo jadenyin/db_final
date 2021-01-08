@@ -5,7 +5,6 @@ from sqlalchemy.ext.declarative import declarative_base
 engine = create_engine('postgresql+psycopg2://postgres:yyj0010YYJ@localhost/bookstore',encoding="utf-8",echo=True)
 base = declarative_base()
 
-
 class User(base):
     __tablename__ = 'users'
     user_id = Column('user_id', TEXT, primary_key=True)
@@ -42,12 +41,12 @@ class New_order_detail(base):
     book_id = Column('book_id', TEXT, primary_key=True)
     count = Column('count', Integer)
     price = Column('price', Integer)
+    state = Column('state', Integer)
 
 
 class Book(base):
     __tablename__ = 'book'
     book_id = Column('book_id', TEXT, primary_key=True)
-    store_id = Column('store_id', TEXT)
     title = Column('title', TEXT)
     publisher = Column('publisher', TEXT)
     original_title = Column('original_title', TEXT)
