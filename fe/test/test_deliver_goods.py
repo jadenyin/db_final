@@ -1,22 +1,11 @@
 import pytest
 
-from fe.access.buyer import Buyer
 from fe.test.gen_book_data import GenBook
 from fe.access.new_buyer import register_new_buyer
 from fe.access.book import Book
 import uuid
 
-
-class TestPayment:
-    seller_id: str
-    store_id: str
-    buyer_id: str
-    password: str
-    buy_book_info_list: [Book]
-    total_price: int
-    order_id: str
-    buyer: Buyer
-
+class TestDeliverGoods:
     @pytest.fixture(autouse=True)
     def pre_run_initialization(self):
         self.seller_id = "test_payment_seller_id_{}".format(str(uuid.uuid1()))
@@ -39,32 +28,24 @@ class TestPayment:
                 continue
             else:
                 self.total_price = self.total_price + book.price * num
+        code = self.buyer.add_funds(self.total_price)
+        assert code == 200
+        code = self.buyer.payment(self.order_id)
+        assert code == 200
         yield
 
-    def test_ok(self):
-        code = self.buyer.add_funds(self.total_price)
-        assert code == 200
-        code = self.buyer.payment(self.order_id)
-        assert code == 200
-
-    def test_authorization_error(self):
-        code = self.buyer.add_funds(self.total_price)
-        assert code == 200
-        self.buyer.password = self.buyer.password + "_x"
-        code = self.buyer.payment(self.order_id)
+    def test_wrong_operation_and_ok(self):
+        code=self.buyer.deliver_goods(self.seller_id,self.order_id,self.seller_id)
+        assert code==200
+        code = self.buyer.deliver_goods(self.seller_id,self.order_id,self.seller_id)
         assert code != 200
-
-    def test_not_suff_funds(self):
-        code = self.buyer.add_funds(self.total_price - 1)
-        assert code == 200
-        code = self.buyer.payment(self.order_id)
-        assert code != 200
-
-    def test_repeat_pay(self):
-        code = self.buyer.add_funds(self.total_price)
-        assert code == 200
-        code = self.buyer.payment(self.order_id)
-        assert code == 200
-
-        code = self.buyer.payment(self.order_id)
+    def test_wrong_order_id(self):
+        self.order_id=self.order_id+'+'
+        code=self.buyer.deliver_goods(self.seller_id,self.order_id,self.seller_id)
+        assert code!=200
+    def test_wrong_password(self):
+        code=self.buyer.deliver_goods(self.seller_id,self.order_id,self.seller_id+'1')
+        assert code!=200
+    def test_wrong_user_id(self):
+        code = self.buyer.deliver_goods(self.seller_id+'1',self.order_id,self.seller_id)
         assert code != 200
