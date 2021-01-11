@@ -20,14 +20,14 @@ class Buyer:
         for id_count_pair in book_id_and_count:
             books.append({"id": id_count_pair[0], "count": id_count_pair[1]})
         json = {"user_id": self.user_id, "store_id": store_id, "books": books}
-        #print(simplejson.dumps(json))
+        # print(simplejson.dumps(json))
         url = urljoin(self.url_prefix, "new_order")
         headers = {"token": self.token}
         r = requests.post(url, headers=headers, json=json)
         response_json = r.json()
         return r.status_code, response_json.get("order_id")
 
-    def payment(self,  order_id: str):
+    def payment(self, order_id: str):
         json = {"user_id": self.user_id, "password": self.password, "order_id": order_id}
         url = urljoin(self.url_prefix, "payment")
         headers = {"token": self.token}
@@ -37,6 +37,41 @@ class Buyer:
     def add_funds(self, add_value: str) -> int:
         json = {"user_id": self.user_id, "password": self.password, "add_value": add_value}
         url = urljoin(self.url_prefix, "add_funds")
+        headers = {"token": self.token}
+        r = requests.post(url, headers=headers, json=json)
+        return r.status_code
+
+    def browse_orders(self, buyer_id: str, mode: int):
+        json = {"user_id": buyer_id, "mode": mode}
+        url = urljoin(self.url_prefix, "browse_orders")
+        headers = {"token": self.token}
+        r = requests.post(url, headers=headers, json=json)
+        return r.status_code
+
+    def cancel_orders(self, buyer_id: str, order_id: str):
+        json = {"user_id": buyer_id, "order_id": order_id}
+        url = urljoin(self.url_prefix, "cancel_orders")
+        headers = {"token": self.token}
+        r = requests.post(url, headers=headers, json=json)
+        return r.status_code
+
+    def deliver_goods(self, user_id, order_id, password):
+        json = {"user_id": user_id, "password": password, "order_id": order_id}
+        url = urljoin(self.url_prefix, "deliver_goods")
+        headers = {"token": self.token}
+        r = requests.post(url, headers=headers, json=json)
+        return r.status_code
+
+    def receive_goods(self, user_id, order_id, password):
+        json = {"user_id": user_id, "password": password, "order_id": order_id}
+        url = urljoin(self.url_prefix, "receive_goods")
+        headers = {"token": self.token}
+        r = requests.post(url, headers=headers, json=json)
+        return r.status_code
+
+    def search_book(self, store_id: str, key_word: str, term: str):
+        json = {"store_id": store_id, "key_word": key_word, "term": term}
+        url = urljoin(self.url_prefix, "retrieve")
         headers = {"token": self.token}
         r = requests.post(url, headers=headers, json=json)
         return r.status_code

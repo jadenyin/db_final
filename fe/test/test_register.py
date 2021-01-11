@@ -1,7 +1,5 @@
 import time
-
 import pytest
-
 from fe.access import auth
 from fe import conf
 
