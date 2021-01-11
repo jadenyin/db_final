@@ -76,7 +76,7 @@ class Scraper:
     page: int
 
     def __init__(self):
-        self.database = "book.db"
+        self.database = "book_lx.db"
         self.tag = ""
         self.page = 0
         self.pattern_number = re.compile(r"\d+\.?\d*")
