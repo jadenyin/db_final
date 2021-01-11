@@ -11,7 +11,7 @@ error_code = {
     518: "invalid order id {}",
     519: "not sufficient funds, order id {}",
     520: "no book found",
-    521: "split pages fail.",
+    521: "page overflow.",
     522: "non exist order, user id {}, order id {}",
     523: "fail to cancel order, order id {}",
     524: "",
@@ -78,5 +78,5 @@ def error_no_book_found():
     return 520, error_code[520],[]
 
 
-def error_split_pages():
+def error_page_overflow():
     return 521, error_code[521]

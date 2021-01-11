@@ -90,6 +90,7 @@ def retrieve():
     key_word = request.json.get("key_word", "")
     term = request.json.get("term", "")
     store_id = request.json.get("store_id", "")
+    page_num = request.json.get("page_num","")
     b = Buyer.buyer_functions()
-    code, message, id_and_stock = b.retrieve(key_word=key_word, term=term, store_id=store_id)
+    code, message, id_and_stock= b.retrieve(key_word=key_word, term=term, store_id=store_id,page_num=page_num)
     return jsonify({"message": message, "book": id_and_stock}), code

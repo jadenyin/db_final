@@ -337,7 +337,7 @@ class buyer_functions(session.ORMsession):
             return 530, "{}".format(str(e))
         return 200, "ok"
 
-    def retrieve(self, key_word: str, term: str, store_id: str) -> (int, str, list):
+    def retrieve(self, key_word: str, term: str, store_id: str,page_num:int) -> (int, str, list):
         try:
             id_and_stock = []
             book_id = []
@@ -377,16 +377,15 @@ class buyer_functions(session.ORMsession):
             if not len(id_and_stock):
                 return error.error_no_book_found()
             # 分页处理,每页书本数=k
-            num = len(id_and_stock)
-            pages = int((num + 10 - 1) / 10)
             splited_result = page_split(id_and_stock, 10)
-            if len(splited_result) != pages:
-                return error.error_split_pages() + ([],)
+            if len(splited_result) < page_num:
+                return error.error_page_overflow() + ([],)
+            self.db_session.commit()
         except BaseException as e:
             buyer_functions().db_session.rollback()
             logging.info("530, {}".format(str(e)))
             return 530, "{}".format(str(e)), ""
-        return 200, "ok", splited_result
+        return 200, "ok", splited_result[page_num-1]
 
 
 def auto_cancel(remove_list):

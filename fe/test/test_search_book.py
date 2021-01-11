@@ -19,7 +19,7 @@ class TestSearchBook:
         code = self.seller.create_store(self.store_id_2)
         assert code == 200
         book_db = book.BookDB()
-        self.books= book_db.get_book_info(0, 20)
+        self.books= book_db.get_book_info(0, 50)
         self.content='一个'
         self.title='第二次'
         self.tag=self.books[0].tags[0]
@@ -38,51 +38,38 @@ class TestSearchBook:
 
     def test_ok_whole_content(self):
         #全局搜索书籍(内容)
-        code=self.buyer.search_book(store_id="",key_word=self.content,term="content")
+        code=self.buyer.search_book(store_id="",key_word=self.content,term="content",page_num=1)
         assert code==200
-
-    def test_ok_whole_title(self):
-        # 全局搜索书籍(内容)
-        code = self.buyer.search_book(store_id="", key_word=self.title, term="title")
+        code = self.buyer.search_book(store_id="", key_word=self.title, term="title",page_num=1)
         assert code == 200
-
-    def test_ok_whole_tag(self):
-        #全局搜索书籍(内容)
-        code=self.buyer.search_book(store_id="",key_word=self.tag,term="tag")
+        code=self.buyer.search_book(store_id="",key_word=self.tag,term="tag",page_num=1)
         assert code==200
 
     def test_ok_single_content(self):
         #全局搜索书籍(内容)
-        code=self.buyer.search_book(store_id=self.store_id_1,key_word=self.content,term="content")
+        code=self.buyer.search_book(store_id=self.store_id_1,key_word=self.content,term="content",page_num=1)
         assert code==200
 
-    def test_ok_single_title(self):
-        #全局搜索书籍(内容)
-        code=self.buyer.search_book(store_id=self.store_id_1,key_word=self.title,term="title")
+        code=self.buyer.search_book(store_id=self.store_id_1,key_word=self.tag,term="tag",page_num=1)
         assert code==200
-
-    def test_ok_single_tag(self):
-        #全局搜索书籍(内容)
-        code=self.buyer.search_book(store_id=self.store_id_1,key_word=self.tag,term="tag")
-        assert code==200
+        code = self.buyer.search_book(store_id=self.store_id_1, key_word=self.title, term="title", page_num=1)
+        assert code == 200
 
     def test_error_none_exist_store_id(self):
-        code=self.buyer.search_book(store_id=self.store_id_1+"x",key_word=self.tag,term="tag")
+        code=self.buyer.search_book(store_id=self.store_id_1+"x",key_word=self.tag,term="tag",page_num=1)
         assert code==513
 
     def test_error_no_book_found(self):
-        code=self.buyer.search_book(store_id=self.store_id_1,key_word=self.tag+"x",term="tag")
+        code=self.buyer.search_book(store_id=self.store_id_1,key_word=self.tag+"x",term="tag",page_num=1)
         assert code==520
 
-    def test_key_word_search_content(self):
-        code=self.buyer.search_book(store_id=self.store_id_1,key_word=self.content[:-1],term="content")
+    def test_key_word_search(self):
+        code=self.buyer.search_book(store_id=self.store_id_1,key_word=self.content[:-1],term="content",page_num=1)
         assert code==200
-
-    def test_key_word_search_title(self):
-        code=self.buyer.search_book(store_id=self.store_id_1,key_word=self.title[:-1],term="title")
-        assert code==200
+        code = self.buyer.search_book(store_id=self.store_id_1, key_word=self.title[:-1], term="title", page_num=1)
+        assert code == 200
 
     def test_split_page(self):
-        code=self.buyer.search_book(store_id=self.store_id_1,key_word='第一',term="content")
+        code=self.buyer.search_book(store_id=self.store_id_1,key_word='第一',term="content",page_num=2)
         assert code==200
 

@@ -41,8 +41,8 @@ class Buyer:
         r = requests.post(url, headers=headers, json=json)
         return r.status_code
 
-    def search_book(self,store_id:str,key_word:str,term:str):
-        json={"store_id":store_id,"key_word":key_word,"term":term}
+    def search_book(self,store_id:str,key_word:str,term:str,page_num:int):
+        json={"store_id":store_id,"key_word":key_word,"term":term,"page_num":page_num}
         url=urljoin(self.url_prefix,"retrieve")
         headers={"token":self.token}
         r = requests.post(url,headers=headers,json=json)
