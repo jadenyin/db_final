@@ -7,8 +7,10 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
 
-
-engine = create_engine('postgresql+psycopg2://postgres:yyj0010YYJ@localhost/bookstore',encoding="utf-8",echo=True)
+username='postgres'
+password='yyj0010YYJ'
+database='bookstore'
+engine = create_engine('postgresql+psycopg2://'+username+':'+password+'@localhost/'+database,encoding="utf-8",echo=True)
 base = declarative_base()
 
 class User(base):
@@ -79,9 +81,9 @@ class Tag_index(base):
 base.metadata.drop_all(engine)
 base.metadata.create_all(engine)  # 创建表结构
 
-with engine.connect() as conn:
-    conn.execute("create index fulltext_content on book using gin(to_tsvector('english',tsv_content))")
-    conn.execute("create index fulltext_title on book using gin(to_tsvector('english',tsv_title))")
+#with engine.connect() as conn:
+    #conn.execute("create index fulltext_content on book using gin(to_tsvector('english',tsv_content))")
+    #conn.execute("create index fulltext_title on book using gin(to_tsvector('english',tsv_title))")
     # conn.execute("delete from users")
     # conn.execute("delete from user_store")
     # conn.execute("delete from store")

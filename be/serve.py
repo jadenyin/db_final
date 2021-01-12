@@ -6,6 +6,7 @@ from flask import request
 from be.view import auth
 from be.view import seller
 from be.view import buyer
+from be.model import buyer as b
 
 bp_shutdown = Blueprint("shutdown", __name__)
 
@@ -19,6 +20,7 @@ def shutdown_server():
 
 @bp_shutdown.route("/shutdown")
 def be_shutdown():
+    b.terminate_auto_cancel()
     shutdown_server()
     return "Server shutting down..."
 

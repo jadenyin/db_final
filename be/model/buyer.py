@@ -9,7 +9,8 @@ import time
 from sqlalchemy import or_
 from sqlalchemy import text
 
-to_be_remove = {}
+ticksPerWheel = 60
+import time
 
 
 # 分页
@@ -27,62 +28,30 @@ def page_split(id_and_stock, split_num):
     return result
 
 
-def remove_list_append(key, value):  # 对to_be_remove进行操作
+# 定时ticksPerWheel自动删除订单
+# 维护一个包含ticksPerWheel个slot的环形队列
+to_be_remove = []
+for i in range(ticksPerWheel):
+    to_be_remove.append([])
+index = 0
+
+
+def remove_list_append(ind, value):  # 对to_be_remove进行操作
     global to_be_remove
-    if key in to_be_remove:
-        to_be_remove[key].append(value)
-    else:
-        to_be_remove[key] = [value]
-
-
-class Timer(threading.Thread):
-    def __init__(self):
-        threading.Thread.__init__(self)
-        self.event = threading.Event()
-
-    def thread(self):
-        auto_cancel(to_be_remove[int(time.time())])
-
-    def run(self):
-        global to_be_remove
-        while not self.event.isSet():
-            self.event.wait(1)
-            if int(time.time()) in to_be_remove:
-                self.thread()
-
-
-timer = Timer()
-timer.start()
-
-
-def stop():
-    global timer
-    timer.event.set()
+    to_be_remove[ind].append(value)
 
 
 class buyer_functions(session.ORMsession):
     def __init__(self):
         session.ORMsession.__init__(self)
 
-    def browser_specific_order(self, user_id, order_id):
-        try:
-            if not self.user_id_exist(user_id):
-                return error.error_non_exist_user_id(user_id)
-            if not self.order_id_exist(user_id, order_id):
-                return error.error_not_exist_order(user_id, order_id)
-            rows = self.db_session.query(ct.New_order_detail).filter(ct.New_order_detail.order_id == order_id).all()
-            for row in rows:
-                print(row.state)
-        except BaseException as e:
-            return 530, "{}".format(str(e))
-        return 200, "ok"
-
     def browser_all_orders(self, user_id):
         try:
             if not self.user_id_exist(user_id):
                 return error.error_non_exist_user_id(user_id)
             orders = self.db_session.query(ct.New_order_detail).join(ct.New_order,
-                                                                     ct.New_order_detail.order_id == ct.New_order.order_id).all()
+                                                                     ct.New_order_detail.order_id == ct.New_order.order_id, ).filter(
+                ct.New_order.user_id == user_id).all()
             for order in orders:
                 print('order_id:{} book_id:{} count:{} price:{}'.format(order.order_id, order.book_id,
                                                                         order.count, order.price))
@@ -96,7 +65,7 @@ class buyer_functions(session.ORMsession):
                 return error.error_non_exist_user_id(user_id)
             orders = self.db_session.query(ct.New_order_detail).join(ct.New_order,
                                                                      ct.New_order_detail.order_id == ct.New_order.order_id). \
-                filter(ct.New_order.state == 4).all()
+                filter(ct.New_order.user_id == user_id, ct.New_order.state == 4).all()
             for order in orders:
                 print('order_id:{} book_id:{} count:{} price:{}'.format(order.order_id, order.book_id,
                                                                         order.count, order.price))
@@ -144,6 +113,7 @@ class buyer_functions(session.ORMsession):
         return 200, "ok"
 
     def new_order(self, user_id, store_id, bookid_and_count):
+        global index
         order_id = ""
         try:
             if not self.user_id_exist(user_id):
@@ -151,7 +121,6 @@ class buyer_functions(session.ORMsession):
             if not self.store_id_exist(store_id):
                 return error.error_non_exist_store_id(store_id) + (order_id,)
             uid = "{}_{}_{}".format(user_id, store_id, str(uuid.uuid1()))
-            now = int(time.time())
             for book_id, count in bookid_and_count:
                 # get book's information
                 row = self.db_session.query(ct.Store).filter(ct.Store.store_id == store_id,
@@ -178,7 +147,7 @@ class buyer_functions(session.ORMsession):
                 self.db_session.add(new_order_detail_obj)
             new_order_obj = ct.New_order(order_id=uid, user_id=user_id, store_id=store_id, state=0)
             self.db_session.add(new_order_obj)
-            remove_list_append(now + 600, uid)
+            remove_list_append((index - 1) % ticksPerWheel, uid)
             self.db_session.commit()
             order_id = uid
         except BaseException as e:
@@ -387,16 +356,47 @@ class buyer_functions(session.ORMsession):
             return 530, "{}".format(str(e)), ""
         return 200, "ok", splited_result[page_num-1]
 
+    def auto_cancel(self, ind):
+        global to_be_remove
+        remove_list = to_be_remove[ind]
+        try:
+            for order in remove_list:
+                row = self.db_session.query(ct.New_order).filter(
+                    ct.New_order.order_id == order).first()
+                print(row)
+                user_id = row.user_id
+                state = row.state
+                if state == 0:
+                    buyer_functions().cancel_order(user_id, order)
+            self.db_session.commit()
+            to_be_remove[ind].clear()
+        except BaseException as e:
+            buyer_functions().db_session.rollback()
+            logging.info("530, {}".format(str(e)))
+            return 530, "{}".format(str(e)), ""
+        return 200, "ok"
 
-def auto_cancel(remove_list):
-    try:
-        for order in remove_list:
-            user_id = buyer_functions().db_session.query(ct.New_order).filter(
-                ct.New_order.order_id == order).first().user_id
-            buyer_functions().cancel_order(user_id, order)
-        buyer_functions().db_session.commit()
-    except BaseException as e:
-        buyer_functions().db_session.rollback()
-        logging.info("530, {}".format(str(e)))
-        return 530, "{}".format(str(e)), ""
-    return 200, "ok"
+
+class Timer(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self._running = True
+
+    def terminate(self):
+        self._running = False
+
+    def run(self):
+        global index
+        while self._running:
+            buyer_functions().auto_cancel(index)
+            time.sleep(1)
+            index = (index + 1) % ticksPerWheel
+
+
+t = Timer()
+t.start()
+
+
+def terminate_auto_cancel():
+    global t
+    t.terminate()

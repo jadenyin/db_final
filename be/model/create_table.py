@@ -3,9 +3,9 @@ from sqlalchemy import Column, Integer, TEXT
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
+import be.__init__ as db
 
-
-engine = create_engine('postgresql+psycopg2://postgres:yyj0010YYJ@localhost/bookstore',encoding="utf-8",echo=True)
+engine = create_engine('postgresql+psycopg2://'+db.username+':'+db.password+'@localhost/'+db.database,encoding="utf-8",echo=True)
 base = declarative_base()
 
 
